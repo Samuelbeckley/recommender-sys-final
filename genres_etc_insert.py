@@ -666,21 +666,19 @@ def get_FE_recommendations(prefs, features, movie_title_to_id, user):
 
 def get_FE_recommendations_2(prefs, features, movie_title_to_id, user, key):
     '''
-        Calculates recommendations for a given user
-        FOR USE IN LOOCVSIM FE
+        Calculates recommendations for a given user; for use in lcvsim-fe
+        
 
         Parameters:
         -- prefs: dictionary containing user-item matrix
         -- features: an np.array whose height is based on number of items
                      and width equals the number of unique features (e.g., genre)
         -- movie_title_to_id: dictionary that maps movie title to movieid
-        -- user: string containing name of user requesting recommendation        
+        -- user: string containing name of user requesting recommendation     
+        -- key: the movie removed for loocv
         
         Returns:
-        -- ranknigs: A list of recommended items with 0 or more tuples, 
-           each tuple contains (predicted rating, item name).
-           List is sorted, high to low, by predicted rating.
-           An empty list is returned when no recommendations have been calc'd.
+        -- pred: the predicted rating for key
         
     '''
     num_feat = 0
@@ -1084,7 +1082,16 @@ def getRecommendedItems(prefs, movie_title_to_id, itemMatch, user, item, sim_thr
         return False
  
 def loo_cv_sim_fe(prefs, movie_title_to_id, features):
-    
+    '''
+    Leave-One_Out Evaluation: evaluates recommender system ACCURACY
+     Parameters:
+         -- prefs dataset: critics, MLK-100k
+         -- movie_title_to_id: A dictionary containing the movieID (value) for a given movie title (key)
+         -- features: the features matrix
+    Returns:
+         -- errors: MSE, MAE, RMSE totals for this set of conditions
+         -- error_lists: MSE and MAE lists of actual-predicted differences
+    '''
     errors = {}
     error_lists = {}
     mse_list = []
@@ -1095,7 +1102,7 @@ def loo_cv_sim_fe(prefs, movie_title_to_id, features):
     
     for user in prefs:
         c += 1
-        if c % 10 == 0:
+        if c % 10 == 0: #progress report
             percent_complete = (100*c)/len(prefs)
             print("%.2f %% complete" % percent_complete)
             
@@ -1106,7 +1113,7 @@ def loo_cv_sim_fe(prefs, movie_title_to_id, features):
  
             pred = get_FE_recommendations_2( prefs_cp, features, movie_title_to_id, user, movie)
      
-            if pred >= -0.1 and pred <= 5.1:
+            if pred >= -0.1 and pred <= 5.1: #pred might be -1 if invalid
                     
                     
                 error_mse = (pred - removed_rating)**2
